@@ -4,7 +4,7 @@ local PREFIX = "Interface\\AddOns\\GrimoirePulse\\"
 local ICON = PREFIX .. "Media\\grimoire-pulse"
 local LUST_IDS = { 2825, 32182, 80353, 264667, 390386, 381301, 146555, 178207 }
 local PI_ID = 10060
-local defaults = { enabled=true, minimap=true, channel="Master", lustSound="Grimoire Pulse", piSound="Grimoire Pulse", lang="auto", positions={} }
+local defaults = { enabled=true, minimap=true, channel="Master", lustSound="Grimoire Pulse", piSound="Grimoire Pulse", lang="auto", positions={}, moving=false }
 local db, active = nil, { lust=false, pi=false }
 
 local function aura(id) return C_UnitAuras.GetPlayerAuraBySpellID(id) end
@@ -43,7 +43,15 @@ local function restore(frame, key)
 end
 local function updateTrack(key, a)
   local f=tracks[key]
-  if not a then f:Hide(); active[key]=false return end
+  if not a then
+    active[key]=false
+    if db.moving then
+      f.time:SetText(L.PREVIEW); f.bar:SetValue(1); f:Show()
+    else
+      f:Hide()
+    end
+    return
+  end
   local remain = math.max(0,(a.expirationTime or GetTime())-GetTime()); local total=a.duration or 1
   f.time:SetFormattedText("%.1fs",remain); f.bar:SetValue(remain/total); f:Show()
   if not active[key] then active[key]=true; play(key=="lust" and db.lustSound or db.piSound) end
@@ -51,7 +59,13 @@ end
 
 local options
 local function button(parent,text,x,y,w,fn)
-  local b=CreateFrame("Button",nil,parent,"UIPanelButtonTemplate"); b:SetSize(w or 100,24); b:SetPoint("TOPLEFT",x,y); b:SetText(text); b:SetScript("OnClick",fn); return b
+  local b=CreateFrame("Button",nil,parent,"BackdropTemplate"); b:SetSize(w or 100,27); b:SetPoint("TOPLEFT",x,y)
+  b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
+  b:SetBackdropColor(.10,.045,.17,.96); b:SetBackdropBorderColor(.54,.28,.78,1)
+  b.text=b:CreateFontString(nil,"OVERLAY","GameFontNormalSmall"); b.text:SetAllPoints(); b.text:SetText(text); b.text:SetTextColor(.92,.78,1)
+  b:SetScript("OnEnter",function(self) self:SetBackdropColor(.22,.07,.31,1); self.text:SetTextColor(1,.9,.45) end)
+  b:SetScript("OnLeave",function(self) self:SetBackdropColor(.10,.045,.17,.96); self.text:SetTextColor(.92,.78,1) end)
+  b:SetScript("OnClick",fn); b.SetText=function(self,value) self.text:SetText(value) end; return b
 end
 local function toggleButton(parent, key, label, x, y, refresh)
   return button(parent,"",x,y,210,function() db[key]=not db[key]; refresh() end), function(b) b:SetText(label..": "..(db[key] and L.ENABLED or L.DISABLED)) end
@@ -61,19 +75,34 @@ local function cycleSound(key)
 end
 local function buildOptions()
   if options then return end
-  options=CreateFrame("Frame","GrimoirePulseOptions",UIParent,"BackdropTemplate"); options:SetSize(360,350); options:SetPoint("CENTER"); options:SetFrameStrata("DIALOG"); options:SetMovable(true); options:EnableMouse(true); options:RegisterForDrag("LeftButton"); options:SetScript("OnDragStart",options.StartMoving); options:SetScript("OnDragStop",options.StopMovingOrSizing); options:Hide()
-  options:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1}); options:SetBackdropColor(.035,.02,.07,.98); options:SetBackdropBorderColor(.65,.25,1,1)
-  local title=options:CreateFontString(nil,"OVERLAY","GameFontNormalLarge"); title:SetPoint("TOP",0,-16); title:SetText(ICON and "|T"..ICON..":22|t  "..L.TITLE); title:SetTextColor(.8,.5,1)
-  local desc=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); desc:SetPoint("TOPLEFT",20,-50); desc:SetPoint("TOPRIGHT",-20,-50); desc:SetJustifyH("LEFT"); desc:SetJustifyV("TOP"); desc:SetText(L.CUSTOM_HELP.."\n\n"..L.RELOAD)
-  local enabled, refreshEnabled=toggleButton(options,"enabled",L.TRACKERS,20,-120)
-  local mini, refreshMini=toggleButton(options,"minimap",L.MINIMAP,20,-150)
-  local lust=button(options,"",20,-190,210,function() cycleSound("lustSound"); options.lustButton:SetText(L.LUST_SOUND..": "..db.lustSound) end)
-  local pi=button(options,"",20,-220,210,function() cycleSound("piSound"); options.piButton:SetText(L.PI_SOUND..": "..db.piSound) end)
+  options=CreateFrame("Frame","GrimoirePulseOptions",UIParent,"BackdropTemplate"); options:SetSize(465,460); options:SetPoint("CENTER"); options:SetFrameStrata("DIALOG"); options:SetMovable(true); options:EnableMouse(true); options:RegisterForDrag("LeftButton"); options:SetScript("OnDragStart",options.StartMoving); options:SetScript("OnDragStop",options.StopMovingOrSizing); options:Hide()
+  options:SetBackdrop({bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",edgeFile="Interface\\DialogFrame\\UI-DialogBox-Gold-Border",edgeSize=18,insets={left=10,right=10,top=10,bottom=10}}); options:SetBackdropColor(.09,.035,.12,.98)
+  local cover=options:CreateTexture(nil,"BACKGROUND"); cover:SetTexture(ICON); cover:SetSize(170,170); cover:SetPoint("TOPRIGHT",-18,-22); cover:SetAlpha(.16)
+  local rule=options:CreateTexture(nil,"ARTWORK"); rule:SetColorTexture(.66,.38,.9,.72); rule:SetSize(410,1); rule:SetPoint("TOP",0,-70)
+  local title=options:CreateFontString(nil,"OVERLAY","GameFontNormalLarge"); title:SetPoint("TOPLEFT",28,-24); title:SetText("|T"..ICON..":30|t  "..L.TITLE); title:SetTextColor(.92,.72,1)
+  local subtitle=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); subtitle:SetPoint("TOPLEFT",32,-52); subtitle:SetText("✦  "..L.GENERAL.."  ✦"); subtitle:SetTextColor(.72,.45,.94)
+  local function heading(text, y)
+    local h=options:CreateFontString(nil,"OVERLAY","GameFontNormalSmall"); h:SetPoint("TOPLEFT",32,y); h:SetText(text); h:SetTextColor(1,.79,.38); return h
+  end
+  heading(L.ALERTS,-92)
+  local enabled, refreshEnabled=toggleButton(options,"enabled",L.TRACKERS,32,-116)
+  local mini, refreshMini=toggleButton(options,"minimap",L.MINIMAP,252,-116)
+  heading(L.SOUNDS,-164)
+  local lust=button(options,"",32,-188,280,function() cycleSound("lustSound"); options.lustButton:SetText(L.LUST_SOUND..": "..db.lustSound) end)
+  local pi=button(options,"",32,-223,280,function() cycleSound("piSound"); options.piButton:SetText(L.PI_SOUND..": "..db.piSound) end)
   options.lustButton, options.piButton = lust, pi
-  button(options,L.TEST,240,-190,95,function() play(db.lustSound); play(db.piSound) end)
-  button(options,L.MOVED,20,-260,210,function() for _,f in pairs(tracks) do f:EnableMouse(true); f:Show() end end)
-  button(options,L.CLOSE,240,-310,95,function() options:Hide() end)
+  button(options,L.TEST,322,-188,108,function() play(db.lustSound); play(db.piSound) end)
+  heading(L.TRACKERS,-278)
+  local move=button(options,"",32,-302,280,function()
+    db.moving=not db.moving
+    for _,f in pairs(tracks) do f:EnableMouse(db.moving); if db.moving then f:Show() end end
+    options.moveButton:SetText(db.moving and L.LOCK or L.UNLOCK)
+  end)
+  options.moveButton = move
+  button(options,L.CLOSE,322,-396,108,function() options:Hide() end)
+  local desc=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); desc:SetPoint("TOPLEFT",32,-350); desc:SetPoint("TOPRIGHT",-28,-350); desc:SetJustifyH("LEFT"); desc:SetText(L.CUSTOM_HELP)
   refreshEnabled(enabled); refreshMini(mini); lust:SetText(L.LUST_SOUND..": "..db.lustSound); pi:SetText(L.PI_SOUND..": "..db.piSound)
+  move:SetText(db.moving and L.LOCK or L.UNLOCK)
 end
 local function openOptions() buildOptions(); options:SetShown(not options:IsShown()) end
 
@@ -83,7 +112,7 @@ local mt=minimap:CreateTexture(nil,"BACKGROUND"); mt:SetTexture(ICON); mt:SetAll
 local elapsed=0
 local e=CreateFrame("Frame"); e:RegisterEvent("ADDON_LOADED"); e:RegisterEvent("PLAYER_ENTERING_WORLD"); e:RegisterEvent("UNIT_AURA")
 e:SetScript("OnEvent",function(_,event,arg)
-  if event=="ADDON_LOADED" then if arg~=ADDON then return end; GrimoirePulseDB=GrimoirePulseDB or {}; db=GrimoirePulseDB; for k,v in pairs(defaults) do if db[k]==nil then db[k]=v end end; restore(tracks.lust,"lust"); restore(tracks.pi,"pi"); minimap:SetShown(db.minimap)
+  if event=="ADDON_LOADED" then if arg~=ADDON then return end; GrimoirePulseDB=GrimoirePulseDB or {}; db=GrimoirePulseDB; for k,v in pairs(defaults) do if db[k]==nil then db[k]=v end end; restore(tracks.lust,"lust"); restore(tracks.pi,"pi"); for _,f in pairs(tracks) do f:EnableMouse(db.moving) end; minimap:SetShown(db.minimap)
   elseif event=="UNIT_AURA" and arg~="player" then return end
   if db then updateTrack("lust",lustAura()); updateTrack("pi",aura(PI_ID)) end
 end)
