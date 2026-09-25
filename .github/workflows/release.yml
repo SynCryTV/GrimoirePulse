@@ -49,8 +49,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd GrimoirePulse
-          zip -r "../GrimoirePulse-${{ steps.version.outputs.version }}.zip" . -x '*.DS_Store' -x '*/.gitkeep'
+          mkdir -p build/GrimoirePulse
+          rsync -a GrimoirePulse/ build/GrimoirePulse/
+          cd build
+          zip -r "../GrimoirePulse-${{ steps.version.outputs.version }}.zip" GrimoirePulse -x '*.DS_Store' -x '*/.gitkeep'
 
       - name: Create GitHub release
         if: steps.version.outputs.publish == 'true'
