@@ -1,0 +1,12 @@
+# WoW client/runtime files
+*.bak
+*.log
+.analysis-*/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Locally built distribution archives
+GrimoirePulse-*.zip
