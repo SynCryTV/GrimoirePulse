@@ -68,7 +68,15 @@ local function button(parent,text,x,y,w,fn)
   b:SetScript("OnClick",fn); b.SetText=function(self,value) self.text:SetText(value) end; return b
 end
 local function toggleButton(parent, key, label, x, y, refresh)
-  return button(parent,"",x,y,210,function() db[key]=not db[key]; refresh() end), function(b) b:SetText(label..": "..(db[key] and L.ENABLED or L.DISABLED)) end
+  local b=button(parent,"",x,y,210,function() end)
+  local function update() b:SetText(label..": "..(db[key] and L.ENABLED or L.DISABLED)) end
+  b:SetScript("OnClick",function()
+    db[key]=not db[key]
+    if key=="enabled" and not db.enabled then tracks.lust:Hide(); tracks.pi:Hide() end
+    if key=="minimap" and _G.GrimoirePulseMinimap then _G.GrimoirePulseMinimap:SetShown(db.minimap) end
+    update()
+  end)
+  return b, update
 end
 local function cycleSound(key)
   local list=soundList(); local at=1; for i,s in ipairs(list) do if s.name==db[key] then at=i end end; at=at%#list+1; db[key]=list[at].name; play(db[key])
@@ -91,7 +99,8 @@ local function buildOptions()
   local lust=button(options,"",32,-188,280,function() cycleSound("lustSound"); options.lustButton:SetText(L.LUST_SOUND..": "..db.lustSound) end)
   local pi=button(options,"",32,-223,280,function() cycleSound("piSound"); options.piButton:SetText(L.PI_SOUND..": "..db.piSound) end)
   options.lustButton, options.piButton = lust, pi
-  button(options,L.TEST,322,-188,108,function() play(db.lustSound); play(db.piSound) end)
+  button(options,L.TEST,322,-188,108,function() play(db.lustSound) end)
+  button(options,L.TEST,322,-223,108,function() play(db.piSound) end)
   heading(L.TRACKERS,-278)
   local move=button(options,"",32,-302,280,function()
     db.moving=not db.moving
@@ -101,7 +110,7 @@ local function buildOptions()
   options.moveButton = move
   button(options,L.CLOSE,322,-396,108,function() options:Hide() end)
   local desc=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); desc:SetPoint("TOPLEFT",32,-350); desc:SetPoint("TOPRIGHT",-28,-350); desc:SetJustifyH("LEFT"); desc:SetText(L.CUSTOM_HELP)
-  refreshEnabled(enabled); refreshMini(mini); lust:SetText(L.LUST_SOUND..": "..db.lustSound); pi:SetText(L.PI_SOUND..": "..db.piSound)
+  refreshEnabled(); refreshMini(); lust:SetText(L.LUST_SOUND..": "..db.lustSound); pi:SetText(L.PI_SOUND..": "..db.piSound)
   move:SetText(db.moving and L.LOCK or L.UNLOCK)
 end
 local function openOptions() buildOptions(); options:SetShown(not options:IsShown()) end
@@ -114,7 +123,7 @@ local e=CreateFrame("Frame"); e:RegisterEvent("ADDON_LOADED"); e:RegisterEvent("
 e:SetScript("OnEvent",function(_,event,arg)
   if event=="ADDON_LOADED" then if arg~=ADDON then return end; GrimoirePulseDB=GrimoirePulseDB or {}; db=GrimoirePulseDB; for k,v in pairs(defaults) do if db[k]==nil then db[k]=v end end; restore(tracks.lust,"lust"); restore(tracks.pi,"pi"); for _,f in pairs(tracks) do f:EnableMouse(db.moving) end; minimap:SetShown(db.minimap)
   elseif event=="UNIT_AURA" and arg~="player" then return end
-  if db then updateTrack("lust",lustAura()); updateTrack("pi",aura(PI_ID)) end
+  if db and db.enabled then updateTrack("lust",lustAura()); updateTrack("pi",aura(PI_ID)) elseif db then tracks.lust:Hide(); tracks.pi:Hide() end
 end)
 e:SetScript("OnUpdate",function(_,dt) elapsed=elapsed+dt; if elapsed>.05 and db then elapsed=0; if db.enabled then updateTrack("lust",lustAura()); updateTrack("pi",aura(PI_ID)) else tracks.lust:Hide(); tracks.pi:Hide() end; minimap:SetShown(db.minimap) end end)
 SLASH_GRIMOIREPULSE1="/gp"; SLASH_GRIMOIREPULSE2="/grimoirepulse"; SlashCmdList.GRIMOIREPULSE=function(msg) if msg=="test" then play(db.lustSound); play(db.piSound) else openOptions() end end
