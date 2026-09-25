@@ -21,3 +21,7 @@ This explicit list is required because WoW addons cannot inspect or browse local
 ## Development
 
 No code, libraries, sound files, textures, or UI layouts were copied from the reference addons. The generated `Media/grimoire-pulse.png` is a new project asset. Contributions are welcome under the MIT license.
+
+## Releases
+
+Pushing to `main` or `master` automatically creates a GitHub Release and installable ZIP when `## Version:` in `GrimoirePulse/GrimoirePulse.toc` is increased. The release is tagged as `v<version>`.
