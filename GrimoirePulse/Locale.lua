@@ -12,7 +12,8 @@ local strings = de and {
   OPTIONS = "Einstellungen", MOVED = "Tracker entsperrt – ziehe ihn an die gewünschte Position.",
   UNLOCK = "Tracker positionieren", LOCK = "Positionen sperren", PREVIEW = "VORSCHAU · ZIEH MICH",
   GENERAL = "GRIMOIRE · ALLGEMEIN", ALERTS = "ARKANE WARNUNGEN", SOUNDS = "KLANGZAUBER",
-  FOLDER = "Sounds-Ordner öffnen", FOLDER_HELP = "WoW darf den Windows-Explorer nicht direkt öffnen. Doppelklicke im installierten Addon-Ordner auf Open-Custom-Sounds.cmd – damit öffnet sich sofort Sounds\\Custom.",
+  FOLDER = "Sounds-Pfad kopieren", FOLDER_HELP = "WoW darf den Windows-Explorer nicht direkt öffnen. Klicke in das Feld, drücke Strg+A und Strg+C. Danach kannst du den Pfad im WoW-Ordner verwenden.",
+  COPY_PATH = "Kopierbarer Addon-Pfad:",
 } or {
   TITLE = "GrimoirePulse", LUST = "Bloodlust", PI = "Power Infusion",
   ENABLED = "Enabled", DISABLED = "Disabled", TEST = "Test", CLOSE = "Close",
@@ -23,6 +24,7 @@ local strings = de and {
   OPTIONS = "Options", MOVED = "Tracker unlocked – drag it where you want it.",
   UNLOCK = "Position trackers", LOCK = "Lock positions", PREVIEW = "PREVIEW · DRAG ME",
   GENERAL = "GRIMOIRE · GENERAL", ALERTS = "ARCANE ALERTS", SOUNDS = "SOUNDCRAFT",
-  FOLDER = "Open sound folder", FOLDER_HELP = "WoW cannot open Windows Explorer directly. Double-click Open-Custom-Sounds.cmd in the installed addon folder to open Sounds\\Custom instantly.",
+  FOLDER = "Copy sound path", FOLDER_HELP = "WoW cannot open Windows Explorer directly. Click the field, press Ctrl+A and Ctrl+C, then use the path inside your WoW folder.",
+  COPY_PATH = "Copyable addon path:",
 }
 for k, v in pairs(strings) do GP.L[k] = v end
