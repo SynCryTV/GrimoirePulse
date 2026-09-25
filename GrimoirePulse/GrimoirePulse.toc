@@ -3,7 +3,7 @@
 ## Notes: Personal Bloodlust and Power Infusion tracker
 ## Notes-deDE: Persönlicher Kampfrausch- und Machtinfusions-Tracker
 ## Author: GrimoirePulse contributors
-## Version: 1.0.4
+## Version: 1.0.5
 ## IconTexture: Interface\AddOns\GrimoirePulse\Media\grimoire-pulse
 ## SavedVariables: GrimoirePulseDB
 

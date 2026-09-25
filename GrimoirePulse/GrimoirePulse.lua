@@ -81,6 +81,14 @@ end
 local function cycleSound(key)
   local list=soundList(); local at=1; for i,s in ipairs(list) do if s.name==db[key] then at=i end end; at=at%#list+1; db[key]=list[at].name; play(db[key])
 end
+StaticPopupDialogs["GRIMOIREPULSE_SOUND_FOLDER"] = {
+  text = L.FOLDER_HELP,
+  button1 = OKAY,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
+}
 local function buildOptions()
   if options then return end
   options=CreateFrame("Frame","GrimoirePulseOptions",UIParent,"BackdropTemplate"); options:SetSize(465,460); options:SetPoint("CENTER"); options:SetFrameStrata("DIALOG"); options:SetMovable(true); options:EnableMouse(true); options:RegisterForDrag("LeftButton"); options:SetScript("OnDragStart",options.StartMoving); options:SetScript("OnDragStop",options.StopMovingOrSizing); options:Hide()
@@ -101,15 +109,16 @@ local function buildOptions()
   options.lustButton, options.piButton = lust, pi
   button(options,L.TEST,322,-188,108,function() play(db.lustSound) end)
   button(options,L.TEST,322,-223,108,function() play(db.piSound) end)
-  heading(L.TRACKERS,-278)
-  local move=button(options,"",32,-302,280,function()
+  button(options,L.FOLDER,32,-258,398,function() StaticPopup_Show("GRIMOIREPULSE_SOUND_FOLDER") end)
+  heading(L.TRACKERS,-305)
+  local move=button(options,"",32,-329,280,function()
     db.moving=not db.moving
     for _,f in pairs(tracks) do f:EnableMouse(db.moving); if db.moving then f:Show() end end
     options.moveButton:SetText(db.moving and L.LOCK or L.UNLOCK)
   end)
   options.moveButton = move
-  button(options,L.CLOSE,322,-396,108,function() options:Hide() end)
-  local desc=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); desc:SetPoint("TOPLEFT",32,-350); desc:SetPoint("TOPRIGHT",-28,-350); desc:SetJustifyH("LEFT"); desc:SetText(L.CUSTOM_HELP)
+  button(options,L.CLOSE,322,-412,108,function() options:Hide() end)
+  local desc=options:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall"); desc:SetPoint("TOPLEFT",32,-377); desc:SetPoint("TOPRIGHT",-28,-377); desc:SetJustifyH("LEFT"); desc:SetText(L.CUSTOM_HELP)
   refreshEnabled(); refreshMini(); lust:SetText(L.LUST_SOUND..": "..db.lustSound); pi:SetText(L.PI_SOUND..": "..db.piSound)
   move:SetText(db.moving and L.LOCK or L.UNLOCK)
 end
