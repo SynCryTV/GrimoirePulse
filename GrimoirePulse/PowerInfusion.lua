@@ -293,6 +293,25 @@ local function Toggle(key, label)
     RefreshAuraBanner()
 end
 
+-- Public bridge for the combined GrimoirePulse settings window.
+_G.GrimoirePulsePI = {
+    GetDB = function() return db end,
+    Test = PlayMLG,
+    ToggleEnabled = function()
+        db.enabled = not db.enabled
+        RefreshAuraBanner()
+        RegisterSound()
+    end,
+    ToggleAlert = function()
+        db.alert = not db.alert
+        RefreshAuraBanner()
+    end,
+    SetChannel = function(channel)
+        db.channel = channel
+        RegisterSound()
+    end,
+}
+
 SLASH_GRIMOIREPULSEPI1 = "/pi"
 SlashCmdList.GRIMOIREPULSEPI = function(msg)
     msg = strlower(strtrim(msg or ""))

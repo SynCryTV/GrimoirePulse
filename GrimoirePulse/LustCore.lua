@@ -16,13 +16,6 @@ local HORDE_SOUND_DURATION = 12.264
 -- Die korrekte Laufzeit verhindert, dass die Vorschau vorzeitig beendet wird.
 local SOUNDS = {
     { name = "Standard",   isFaction = true },
-    { name = "01",         path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "02",         path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "03",         path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "Custom1",    path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "Custom2",    path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "Custom3",    path = HORDE_SOUND_PATH, duration = HORDE_SOUND_DURATION },
-    { name = "Zufällig",  isCustomRandom = true,   duration = HORDE_SOUND_DURATION },
 }
 
 local FACTION_SOUNDS = {
@@ -280,12 +273,6 @@ local function StartZoomAnim()
     end)
 end
 
-local CUSTOM_RANDOM_PATHS = {
-    HORDE_SOUND_PATH,
-    HORDE_SOUND_PATH,
-    HORDE_SOUND_PATH,
-}
-
 local function GetFactionSound()
     local faction = UnitFactionGroup("player")
     return FACTION_SOUNDS[faction] or FACTION_SOUNDS["Horde"]
@@ -294,9 +281,6 @@ end
 local function GetSoundPath(name)
     if name == "Standard" then
         return GetFactionSound().path
-    end
-    if name == "Zufällig" then
-        return CUSTOM_RANDOM_PATHS[math.random(1, #CUSTOM_RANDOM_PATHS)]
     end
     for _, s in ipairs(SOUNDS) do
         if s.name == name then return s.path end
@@ -433,7 +417,8 @@ zoneFrame:RegisterEvent("ADDON_LOADED")
 zoneFrame:RegisterEvent("PLAYER_DEAD")
 zoneFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "GrimoirePulse" then
-        GrimoirePulseLustDB.sound             = GrimoirePulseLustDB.sound             or "Standard"
+        -- Older releases stored additional selections; the combined build keeps one standard sound.
+        GrimoirePulseLustDB.sound             = "Standard"
         GrimoirePulseLustDB.channel           = GrimoirePulseLustDB.channel           or "Master"
         if GrimoirePulseLustDB.enabled     == nil then GrimoirePulseLustDB.enabled     = true  end
         GrimoirePulseLustDB.posX              = GrimoirePulseLustDB.posX              or 0
@@ -1766,6 +1751,74 @@ UpdateBarSettingsUI = function()
     UpdateDirBtns()
 end
 
+-- Machtinfusion lives in the same settings window as the Lust tracker.
+local piSectY = barSectY - 185
+local piLine = sf:CreateTexture(nil, "ARTWORK")
+piLine:SetSize(W, 1)
+piLine:SetPoint("TOPLEFT", 0, piSectY)
+piLine:SetColorTexture(0.45, 0.22, 0.68, 1)
+
+local piTitle = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+piTitle:SetPoint("TOPLEFT", 16, piSectY - 14)
+piTitle:SetText("Machtinfusion")
+piTitle:SetTextColor(0.72, 0.45, 1)
+
+local function CreatePIButton(y)
+    local button = CreateFrame("Button", nil, sf, "BackdropTemplate")
+    button:SetSize(W - 32, 22)
+    button:SetPoint("TOPLEFT", 16, y)
+    button:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1, insets={left=1,right=1,top=1,bottom=1} })
+    button:SetBackdropColor(0.08, 0.04, 0.12, 1)
+    button:SetBackdropBorderColor(0.34, 0.18, 0.52, 1)
+    button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    button.label:SetAllPoints()
+    button.label:SetTextColor(0.85, 0.72, 1)
+    return button
+end
+
+local piEnabledBtn = CreatePIButton(piSectY - 30)
+local piAlertBtn   = CreatePIButton(piSectY - 55)
+local piChannelBtn = CreatePIButton(piSectY - 80)
+local piTestBtn    = CreatePIButton(piSectY - 105)
+piTestBtn.label:SetText("Machtinfusion testen")
+
+local function UpdatePIControls()
+    local api = _G.GrimoirePulsePI
+    local db = api and api.GetDB()
+    if not db then
+        piEnabledBtn.label:SetText("Machtinfusion wird geladen …")
+        piAlertBtn:Hide(); piChannelBtn:Hide(); piTestBtn:Hide()
+        return
+    end
+    piAlertBtn:Show(); piChannelBtn:Show(); piTestBtn:Show()
+    piEnabledBtn.label:SetText("Machtinfusion: " .. (db.enabled and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
+    piAlertBtn.label:SetText("Bildschirmalarm: " .. (db.alert and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
+    piChannelBtn.label:SetText("Audio-Kanal: " .. (db.channel or "Master"))
+end
+
+piEnabledBtn:SetScript("OnClick", function()
+    local api = _G.GrimoirePulsePI
+    if api then api.ToggleEnabled(); UpdatePIControls() end
+end)
+piAlertBtn:SetScript("OnClick", function()
+    local api = _G.GrimoirePulsePI
+    if api then api.ToggleAlert(); UpdatePIControls() end
+end)
+piChannelBtn:SetScript("OnClick", function()
+    local api = _G.GrimoirePulsePI
+    local db = api and api.GetDB()
+    if not db then return end
+    local at = 1
+    for i, channel in ipairs(CHANNELS) do if channel.key == db.channel then at = i break end end
+    at = at % #CHANNELS + 1
+    api.SetChannel(CHANNELS[at].key)
+    UpdatePIControls()
+end)
+piTestBtn:SetScript("OnClick", function()
+    local api = _G.GrimoirePulsePI
+    if api then api.Test() end
+end)
+
 local function ResetDisplayPosition()
     GrimoirePulseLustDB.posX      = 0
     GrimoirePulseLustDB.posY      = 200
@@ -1801,6 +1854,7 @@ SlashCmdList["LUSTALERT"] = function(msg)
         UpdateRows()
         UpdateBarSettingsUI()
         UpdateAnimBtn()
+        UpdatePIControls()
         sf:Show()
     end
 end
