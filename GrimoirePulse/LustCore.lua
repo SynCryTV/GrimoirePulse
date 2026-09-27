@@ -1231,32 +1231,32 @@ animBtnArrow:SetText("v")
 animBtnArrow:SetTextColor(0.4, 0.4, 0.6)
 
 local animSpeedLabel2 = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-animSpeedLabel2:SetPoint("TOPLEFT", 16, frogSectY - 74)
+animSpeedLabel2:SetPoint("TOPLEFT", 16, frogSectY - 70)
 animSpeedLabel2:SetText("Geschwindigkeit")
 animSpeedLabel2:SetTextColor(0.6, 0.6, 0.8)
 
 local animSpeedBg = sf:CreateTexture(nil, "BACKGROUND")
-animSpeedBg:SetPoint("TOPLEFT", 55, frogSectY - 70)
-animSpeedBg:SetSize(160, 4)
+animSpeedBg:SetPoint("TOPLEFT", 112, frogSectY - 66)
+animSpeedBg:SetSize(96, 4)
 animSpeedBg:SetColorTexture(0.1, 0.15, 0.25, 1)
 
 local animSpeedFill = sf:CreateTexture(nil, "ARTWORK")
-animSpeedFill:SetPoint("TOPLEFT", 55, frogSectY - 70)
-animSpeedFill:SetSize(64, 4)
+animSpeedFill:SetPoint("TOPLEFT", 112, frogSectY - 66)
+animSpeedFill:SetSize(38, 4)
 animSpeedFill:SetColorTexture(0.16, 0.48, 0.8, 1)
 
 local animSpeedSlowTxt = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-animSpeedSlowTxt:SetPoint("TOPLEFT", 55, frogSectY - 76)
-animSpeedSlowTxt:SetText("Langsam")
+animSpeedSlowTxt:SetPoint("TOPLEFT", 112, frogSectY - 80)
+animSpeedSlowTxt:SetText("0.25x")
 animSpeedSlowTxt:SetTextColor(0.35, 0.35, 0.5)
 
 local animSpeedFastTxt = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-animSpeedFastTxt:SetPoint("TOPRIGHT", -(W - 215 - 10), frogSectY - 76)
-animSpeedFastTxt:SetText("Schnell")
+animSpeedFastTxt:SetPoint("TOPRIGHT", 208, frogSectY - 80)
+animSpeedFastTxt:SetText("4.00x")
 animSpeedFastTxt:SetTextColor(0.35, 0.35, 0.5)
 
 local animSpeedValTxt = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-animSpeedValTxt:SetPoint("TOPLEFT", 222, frogSectY - 74)
+animSpeedValTxt:SetPoint("TOPLEFT", 224, frogSectY - 70)
 animSpeedValTxt:SetTextColor(0.47, 0.62, 0.94)
 
 local animSpeedThumb = sf:CreateTexture(nil, "OVERLAY")
@@ -1264,16 +1264,16 @@ animSpeedThumb:SetSize(12, 12)
 animSpeedThumb:SetColorTexture(0.29, 0.61, 0.87, 1)
 
 local animSpeedSlider = CreateFrame("Button", nil, sf)
-animSpeedSlider:SetPoint("TOPLEFT", 55, frogSectY - 64)
-animSpeedSlider:SetSize(160, 16)
+animSpeedSlider:SetPoint("TOPLEFT", 112, frogSectY - 60)
+animSpeedSlider:SetSize(96, 16)
 
 local function SetAnimSpeed(v)
     v = math.max(0.25, math.min(4.0, math.floor(v * 10 + 0.5) / 10))
     GrimoirePulseLustDB.animSpeed = v
     FROG_FRAME_DUR = 0.04 / v
     local pct = (v - 0.25) / 3.75
-    animSpeedFill:SetWidth(math.max(1, pct * 160))
-    animSpeedThumb:SetPoint("CENTER", sf, "TOPLEFT", 55 + pct * 160, frogSectY - 68)
+    animSpeedFill:SetWidth(math.max(1, pct * 96))
+    animSpeedThumb:SetPoint("CENTER", sf, "TOPLEFT", 112 + pct * 96, frogSectY - 64)
     animSpeedValTxt:SetText(string.format("%.2fx", v))
 end
 
@@ -1281,11 +1281,11 @@ animSpeedSlider:SetScript("OnMouseDown", function(self, btn)
     if btn ~= "LeftButton" then return end
     local x = GetCursorPosition() / self:GetEffectiveScale()
     local left = self:GetLeft()
-    local pct = math.max(0, math.min(1, (x - left) / 160))
+    local pct = math.max(0, math.min(1, (x - left) / 96))
     SetAnimSpeed(0.25 + pct * 3.75)
     self:SetScript("OnUpdate", function()
         local cx = GetCursorPosition() / self:GetEffectiveScale()
-        local p = math.max(0, math.min(1, (cx - left) / 160))
+        local p = math.max(0, math.min(1, (cx - left) / 96))
         SetAnimSpeed(0.25 + p * 3.75)
     end)
 end)
