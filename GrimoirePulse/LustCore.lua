@@ -1751,19 +1751,19 @@ UpdateBarSettingsUI = function()
     UpdateDirBtns()
 end
 
--- Machtinfusion lives in the same settings window as the Lust tracker.
-local piSectY = barSectY - 185
-local piLine = sf:CreateTexture(nil, "ARTWORK")
-piLine:SetSize(W, 1)
-piLine:SetPoint("TOPLEFT", 0, piSectY)
-piLine:SetColorTexture(0.45, 0.22, 0.68, 1)
+-- Keep all PI UI references in one table: LustCore is close to WoW's local-variable limit.
+local piUI = { y = barSectY - 185 }
+piUI.line = sf:CreateTexture(nil, "ARTWORK")
+piUI.line:SetSize(W, 1)
+piUI.line:SetPoint("TOPLEFT", 0, piUI.y)
+piUI.line:SetColorTexture(0.45, 0.22, 0.68, 1)
 
-local piTitle = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-piTitle:SetPoint("TOPLEFT", 16, piSectY - 14)
-piTitle:SetText("Machtinfusion")
-piTitle:SetTextColor(0.72, 0.45, 1)
+piUI.title = sf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+piUI.title:SetPoint("TOPLEFT", 16, piUI.y - 14)
+piUI.title:SetText("Machtinfusion")
+piUI.title:SetTextColor(0.72, 0.45, 1)
 
-local function CreatePIButton(y)
+function piUI:CreateButton(y)
     local button = CreateFrame("Button", nil, sf, "BackdropTemplate")
     button:SetSize(W - 32, 22)
     button:SetPoint("TOPLEFT", 16, y)
@@ -1776,35 +1776,35 @@ local function CreatePIButton(y)
     return button
 end
 
-local piEnabledBtn = CreatePIButton(piSectY - 30)
-local piAlertBtn   = CreatePIButton(piSectY - 55)
-local piChannelBtn = CreatePIButton(piSectY - 80)
-local piTestBtn    = CreatePIButton(piSectY - 105)
-piTestBtn.label:SetText("Machtinfusion testen")
+piUI.enabledButton = piUI:CreateButton(piUI.y - 30)
+piUI.alertButton   = piUI:CreateButton(piUI.y - 55)
+piUI.channelButton = piUI:CreateButton(piUI.y - 80)
+piUI.testButton    = piUI:CreateButton(piUI.y - 105)
+piUI.testButton.label:SetText("Machtinfusion testen")
 
-local function UpdatePIControls()
+function piUI:Update()
     local api = _G.GrimoirePulsePI
     local db = api and api.GetDB()
     if not db then
-        piEnabledBtn.label:SetText("Machtinfusion wird geladen …")
-        piAlertBtn:Hide(); piChannelBtn:Hide(); piTestBtn:Hide()
+        self.enabledButton.label:SetText("Machtinfusion wird geladen …")
+        self.alertButton:Hide(); self.channelButton:Hide(); self.testButton:Hide()
         return
     end
-    piAlertBtn:Show(); piChannelBtn:Show(); piTestBtn:Show()
-    piEnabledBtn.label:SetText("Machtinfusion: " .. (db.enabled and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
-    piAlertBtn.label:SetText("Bildschirmalarm: " .. (db.alert and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
-    piChannelBtn.label:SetText("Audio-Kanal: " .. (db.channel or "Master"))
+    self.alertButton:Show(); self.channelButton:Show(); self.testButton:Show()
+    self.enabledButton.label:SetText("Machtinfusion: " .. (db.enabled and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
+    self.alertButton.label:SetText("Bildschirmalarm: " .. (db.alert and "|cff44cc44AN|r" or "|cffff4444AUS|r"))
+    self.channelButton.label:SetText("Audio-Kanal: " .. (db.channel or "Master"))
 end
 
-piEnabledBtn:SetScript("OnClick", function()
+piUI.enabledButton:SetScript("OnClick", function()
     local api = _G.GrimoirePulsePI
-    if api then api.ToggleEnabled(); UpdatePIControls() end
+    if api then api.ToggleEnabled(); piUI:Update() end
 end)
-piAlertBtn:SetScript("OnClick", function()
+piUI.alertButton:SetScript("OnClick", function()
     local api = _G.GrimoirePulsePI
-    if api then api.ToggleAlert(); UpdatePIControls() end
+    if api then api.ToggleAlert(); piUI:Update() end
 end)
-piChannelBtn:SetScript("OnClick", function()
+piUI.channelButton:SetScript("OnClick", function()
     local api = _G.GrimoirePulsePI
     local db = api and api.GetDB()
     if not db then return end
@@ -1812,9 +1812,9 @@ piChannelBtn:SetScript("OnClick", function()
     for i, channel in ipairs(CHANNELS) do if channel.key == db.channel then at = i break end end
     at = at % #CHANNELS + 1
     api.SetChannel(CHANNELS[at].key)
-    UpdatePIControls()
+    piUI:Update()
 end)
-piTestBtn:SetScript("OnClick", function()
+piUI.testButton:SetScript("OnClick", function()
     local api = _G.GrimoirePulsePI
     if api then api.Test() end
 end)
@@ -1854,7 +1854,7 @@ SlashCmdList["LUSTALERT"] = function(msg)
         UpdateRows()
         UpdateBarSettingsUI()
         UpdateAnimBtn()
-        UpdatePIControls()
+        piUI:Update()
         sf:Show()
     end
 end
