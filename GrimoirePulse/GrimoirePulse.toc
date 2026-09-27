@@ -3,7 +3,7 @@
 ## Notes: Private combined Bloodlust and Power Infusion alerts
 ## Notes-deDE: Private Kombi aus Kampfrausch- und Machtinfusions-Alarmen
 ## Author: GrimoirePulse contributors
-## Version: 2.0.3
+## Version: 2.0.4
 ## IconTexture: Interface\AddOns\GrimoirePulse\icon\LUSTicon
 ## SavedVariables: GrimoirePulseLustDB, GrimoirePulsePIDB
 

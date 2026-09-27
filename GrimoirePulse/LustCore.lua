@@ -1819,6 +1819,14 @@ piUI.testButton:SetScript("OnClick", function()
     if api then api.Test() end
 end)
 
+function sf:OpenGrimoirePulseSettings()
+    UpdateRows()
+    UpdateBarSettingsUI()
+    UpdateAnimBtn()
+    piUI:Update()
+    self:Show()
+end
+
 local function ResetDisplayPosition()
     GrimoirePulseLustDB.posX      = 0
     GrimoirePulseLustDB.posY      = 200
@@ -1851,11 +1859,7 @@ SlashCmdList["LUSTALERT"] = function(msg)
     if sf:IsShown() then
         sf:Hide()
     else
-        UpdateRows()
-        UpdateBarSettingsUI()
-        UpdateAnimBtn()
-        piUI:Update()
-        sf:Show()
+        sf:OpenGrimoirePulseSettings()
     end
 end
 
@@ -1972,7 +1976,7 @@ if GrimoirePulse_LDB then
         OnClick = function(self, btn)
             if btn=="LeftButton" then
                 if sf:IsShown() then sf:Hide()
-                else UpdateRows(); UpdateBarSettingsUI(); UpdateAnimBtn(); sf:Show() end
+                else sf:OpenGrimoirePulseSettings() end
             elseif btn=="RightButton" then
                 if mm.menu:IsShown() then
                     mm.menu:Hide()
