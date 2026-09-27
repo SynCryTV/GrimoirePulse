@@ -1,12 +1,16 @@
 ## Interface: 120000
 ## Title: GrimoirePulse
-## Notes: Personal Bloodlust and Power Infusion tracker
-## Notes-deDE: Persönlicher Kampfrausch- und Machtinfusions-Tracker
+## Notes: Private combined Bloodlust and Power Infusion alerts
+## Notes-deDE: Private Kombi aus Kampfrausch- und Machtinfusions-Alarmen
 ## Author: GrimoirePulse contributors
-## Version: 1.0.6
-## IconTexture: Interface\AddOns\GrimoirePulse\Media\grimoire-pulse
-## SavedVariables: GrimoirePulseDB
+## Version: 2.0.0
+## IconTexture: Interface\AddOns\GrimoirePulse\icon\LUSTicon
+## SavedVariables: GrimoirePulseLustDB, GrimoirePulsePIDB
 
-Locale.lua
-UserSounds.lua
-GrimoirePulse.lua
+libs\LibStub.lua
+libs\CallbackHandler-1.0.lua
+libs\LibSharedMedia-3.0.lua
+libs\LibDBIcon-1.0.lua
+LustCore.lua
+PIMessages.lua
+PowerInfusion.lua

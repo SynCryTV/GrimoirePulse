@@ -18,9 +18,11 @@ The package includes one initial alert sound, with the user's permission, to mak
 
 This explicit list is required because WoW addons cannot inspect or browse local files at runtime.
 
-## Development
+## Version 2.0.0: private all-in-one build
 
-No code, libraries, sound files, textures, or UI layouts were copied from the reference addons. The generated `Media/grimoire-pulse.png` is a new project asset. Contributions are welcome under the MIT license.
+At the repository owner's request, this version combines the provided LustAlert and MLG Power Infusion components into one addon folder, adds German UI text, and keeps their original functionality available through `/lust` and `/pi`.
+
+The original authors retain rights to their respective source code, media, sounds, and artwork. Before redistributing or using this project outside a private setting, make sure you have the necessary permissions and comply with the original licenses.
 
 ## Releases
 
